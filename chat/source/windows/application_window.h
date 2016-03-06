@@ -3,9 +3,7 @@
 
 #include <QMainWindow>
 
-namespace Ui {
-class ApplicationWindow;
-}
+#include "ui_application_window.h"
 ///
 /// \brief Основное окно приложения
 ///

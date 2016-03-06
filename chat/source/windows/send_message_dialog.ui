@@ -11,7 +11,7 @@
    </rect>
   </property>
   <property name="windowTitle">
-   <string>Dialog</string>
+   <string>Message Window</string>
   </property>
   <layout class="QVBoxLayout" name="verticalLayout">
    <item>
@@ -38,6 +38,9 @@
            <width>30</width>
            <height>16777215</height>
           </size>
+         </property>
+         <property name="toolTip">
+          <string>Send Message</string>
          </property>
          <property name="text">
           <string>&gt;</string>
