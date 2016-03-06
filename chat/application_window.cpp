@@ -1,10 +1,10 @@
 #include "application_window.h"
 #include "ui_application_window.h"
 
-ApplicationWindow::ApplicationWindow(QWidget * parent) :
-    QMainWindow(parent)
+ApplicationWindow::ApplicationWindow( QWidget * parent ) :
+    QMainWindow( parent )
 {
-    setupUi(this);
+    setupUi( this );
 }
 
 ApplicationWindow::~ApplicationWindow()
