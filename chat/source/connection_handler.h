@@ -14,6 +14,16 @@ enum NetworkMessage
     NetworkMessageData,///< сообщение с информацией
 };
 ///
+/// \brief структура передается в сообщении NetworkMessagePing
+///
+struct PingMessage
+{
+    QString m_nick_name;
+};
+
+QDataStream & operator <<( QDataStream & stream, const PingMessage & data );
+QDataStream & operator >>( QDataStream & stream, PingMessage & data );
+///
 /// \brief Обработчик сетевого взаимодействия
 ///
 class ConnectionHandler :
@@ -23,17 +33,19 @@ class ConnectionHandler :
 public:
     ConnectionHandler();
     virtual ~ConnectionHandler();
-
     /// \brief отправляет сообщение
     ///
     /// дынные упаковываются по протоколу приложени и шифруются
-    void writeMessage( NetworkMessage id, QByteArray data, const QHostAddress & adress, quint32 port );
+    void writeMessage( NetworkMessage id,
+                       const QByteArray & data,
+                       const QHostAddress & adress,
+                       quint32 port );
 signals:
-    void receivedPing();
-    void receivedData();
+    void receivedPing( const PingMessage & data, const QHostAddress & adress, quint32 port );
+    void receivedData( const QByteArray & data, const QHostAddress & adress, quint32 port );
 private slots:
     void onSocketReadyRead();
-    void onPingTimerTimeeout();
+    void onPingTimerTimeout();
 private:
     void setupConnections();
     void readMessage( const QByteArray & message, const QHostAddress & adress, quint32 port );

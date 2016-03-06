@@ -27,16 +27,17 @@ QDataStream & operator >>( QDataStream & stream, MessageHeader & data )
     return stream >> data.m_id;
 }
 
-///
-/// \brief структура передается в сообщении NetworkMessagePing
-///
-struct PingMessage
-{
-    QString m_nick_name;
-};
-
-
 } //namespace
+
+QDataStream & operator <<( QDataStream & stream, const PingMessage & data )
+{
+    return stream << data.m_nick_name;
+}
+
+QDataStream & operator >>( QDataStream & stream, PingMessage & data )
+{
+    return stream >> data.m_nick_name;
+}
 
 ConnectionHandler::ConnectionHandler()
 {
@@ -44,21 +45,24 @@ ConnectionHandler::ConnectionHandler()
     //привяжемся куда попало
     m_socket.bind();
     if( m_ping_timer )
-        m_ping_timer->start( 2000 );//время пингов
+        m_ping_timer->start( 3000 );//время пингов
 }
 
 ConnectionHandler::~ConnectionHandler()
 {
 }
 
-void ConnectionHandler::writeMessage( NetworkMessage id, QByteArray data, const QHostAddress & adress, quint32 port )
+void ConnectionHandler::writeMessage( NetworkMessage id,
+                                      const QByteArray & data,
+                                      const QHostAddress & adress,
+                                      quint32 port )
 {
     MessageHeader header;
     header.m_id = id;
 
     QByteArray buffer;
     QDataStream stream( &buffer, QIODevice::WriteOnly );
-    stream >> header >> data;
+    stream << header << data;
     m_socket.writeDatagram( buffer, adress, port );
 }
 
@@ -79,9 +83,15 @@ void ConnectionHandler::onSocketReadyRead()
     }
 }
 
-void ConnectionHandler::onPingTimerTimeeout()
+void ConnectionHandler::onPingTimerTimeout()
 {
-    writeMessage( NetworkMessagePing, );
+    PingMessage data;
+    data.m_nick_name = "test";//TODO
+
+    QByteArray buffer;
+    QDataStream stream( &buffer, QIODevice::WriteOnly );
+    stream << data;
+    writeMessage( NetworkMessagePing, buffer, QHostAddress::Broadcast, 0 );
 }
 
 void ConnectionHandler::setupConnections()
@@ -91,7 +101,7 @@ void ConnectionHandler::setupConnections()
 
     m_ping_timer.reset( new QTimer );
     connect( m_ping_timer.data(), &QTimer::timeout,
-             this, &ConnectionHandler::onPingTimerTimeeout );
+             this, &ConnectionHandler::onPingTimerTimeout );
 }
 
 void ConnectionHandler::readMessage( const QByteArray & message, const QHostAddress & adress, quint32 port )
@@ -99,29 +109,30 @@ void ConnectionHandler::readMessage( const QByteArray & message, const QHostAddr
     QDataStream stream( message );
     //читаем шапку
     MessageHeader header;
-    stream << header;
-    if( QDataStream::Ok == stream.status() )
-        switch ( header.m_id )
+    stream >> header;
+    switch ( header.m_id )
+    {
+        case NetworkMessagePing:
         {
-            case NetworkMessagePing:
-            {
-                QByteArray data;
-                stream << data;
-                QString nick( data );
-                emit receivedPing( nick );
-            } break;
-            case NetworkMessageData:
-            {
-                QString text;
-                stream << text;
-
-            } break;
-            default:
-                qDebug() << "ConnectionHandler::readMessage unknown message";
-            break;
-        }
-
-    stream << data;
-
+            PingMessage data;
+            stream >> data;
+            if( QDataStream::Ok == stream.status() )
+                emit receivedPing( data, adress, port );
+            else
+                qDebug() << "ConnectionHandler::readMessage error";
+        } break;
+        case NetworkMessageData:
+        {
+            QByteArray data;
+            stream >> data;
+            if( QDataStream::Ok == stream.status() )
+                emit receivedData( data, adress, port );
+            else
+                qDebug() << "ConnectionHandler::readMessage error";
+        } break;
+        default:
+            qDebug() << "ConnectionHandler::readMessage unknown message";
+        break;
+    }
 }
 

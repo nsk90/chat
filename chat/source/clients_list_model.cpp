@@ -19,7 +19,8 @@ QVariant ClientsListModel::data( const QModelIndex & index, int role ) const
         switch ( role )
         {
             case Qt::DisplayRole:
-                result m_clients[index.row()].nickName();
+                if( m_clients[ index.row() ] )
+                    result = m_clients[ index.row() ]->nickName();
             break;
         }
     return result;

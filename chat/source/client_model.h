@@ -2,6 +2,7 @@
 #define CLIENTMODEL_H
 
 #include <QObject>
+#include <QSharedPointer>
 ///
 /// \brief модель клиента
 ///
@@ -10,6 +11,7 @@ class ClientModel :
 {
     Q_OBJECT
 public:
+    typedef QSharedPointer< ClientModel > Shared;
     explicit ClientModel( QObject * parent = 0 );
 
     const QString & nickName() const { return m_nick_name; }

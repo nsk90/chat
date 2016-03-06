@@ -19,7 +19,8 @@ SOURCES += \
     source/windows/send_message_dialog.cpp \
     source/criptographer_xor.cpp \
     source/clients_list_model.cpp \
-    source/client_model.cpp
+    source/client_model.cpp \
+    source/appmodel.cpp
 
 HEADERS  += \
     source/windows/application_window.h \
@@ -27,7 +28,8 @@ HEADERS  += \
     source/windows/send_message_dialog.h \
     source/criptographer_xor.h \
     source/clients_list_model.h \
-    source/client_model.h
+    source/client_model.h \
+    source/appmodel.h
 
 FORMS    += \
     source/windows/application_window.ui \
