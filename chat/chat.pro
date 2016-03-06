@@ -12,14 +12,21 @@ TARGET = chat
 TEMPLATE = app
 
 
-SOURCES += main.cpp\
-        application_window.cpp \
-    connection_handler.cpp \
-    send_message_dialog.cpp
+SOURCES += \
+    source/main.cpp\
+    source/windows/application_window.cpp \
+    source/connection_handler.cpp \
+    source/windows/send_message_dialog.cpp \
+    source/criptographer_xor.cpp
 
-HEADERS  += application_window.h \
-    connection_handler.h \
-    send_message_dialog.h
+HEADERS  += \
+    source/windows/application_window.h \
+    source/connection_handler.h \
+    source/windows/send_message_dialog.h \
+    source/criptographer_xor.h
 
-FORMS    += application_window.ui \
+FORMS    += \
+    application_window.ui \
     send_message_dialog.ui
+
+INCLUDEPATH += /source
