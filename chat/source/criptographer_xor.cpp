@@ -5,13 +5,10 @@ CriptographerXOR::CriptographerXOR() :
 {
 }
 
-QByteArray CriptographerXOR::encode( const QByteArray & data )
+QByteArray CriptographerXOR::xORdataByPassword( QByteArray data ) const
 {
-
-}
-
-QByteArray CriptographerXOR::decode( const QByteArray & data )
-{
-
+    for ( int i = 0; i < data.size(); ++i )
+        data[i] = data[i] ^ m_password[ i % m_password.size() ];
+    return data;
 }
 

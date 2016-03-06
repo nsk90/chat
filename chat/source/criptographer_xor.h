@@ -10,14 +10,15 @@ class CriptographerXOR
 public:
     CriptographerXOR();
 
-    const QString & password() const { return m_password; }
+    const QByteArray & password() const { return m_password; }
 
-    QByteArray encode( const QByteArray & data );
-    QByteArray decode( const QByteArray & data );
+    QByteArray encode( const QByteArray & data ) const { return xORdataByPassword( data ); }
+    QByteArray decode( const QByteArray & encoded_data ) const { return xORdataByPassword( data ); }
 private:
     Q_DISABLE_COPY(CriptographerXOR)
+    QByteArray xORdataByPassword( QByteArray data ) const;
 
-    QString m_password;
+    QByteArray m_password;
 };
 
 #endif // CRIPTOGRAPHERXOR_H
