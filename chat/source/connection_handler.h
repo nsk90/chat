@@ -5,24 +5,9 @@
 #include <QTimer>
 #include <QSharedPointer>
 
-///
-/// \brief идентификаторы сетевых сообщений
-///
-enum NetworkMessage
-{
-    NetworkMessagePing,///< сообщение посылается для поддержания свзяи между клиентами
-    NetworkMessageData,///< сообщение с информацией
-};
-///
-/// \brief структура передается в сообщении NetworkMessagePing
-///
-struct PingMessage
-{
-    QString m_nick_name;
-};
+#include "enums.h"
 
-QDataStream & operator <<( QDataStream & stream, const PingMessage & data );
-QDataStream & operator >>( QDataStream & stream, PingMessage & data );
+struct PingMessage;
 ///
 /// \brief Обработчик сетевого взаимодействия
 ///
@@ -31,7 +16,7 @@ class ConnectionHandler :
 {
     Q_OBJECT
 public:
-    ConnectionHandler();
+    explicit ConnectionHandler( QObject * parent = 0 );
     virtual ~ConnectionHandler();
     /// \brief отправляет сообщение
     ///
@@ -49,9 +34,11 @@ private slots:
 private:
     void setupConnections();
     void readMessage( const QByteArray & message, const QHostAddress & adress, quint32 port );
+    /// \brief читает из полученный данных структуру PingMessage
+    void readPingMessage( const QByteArray & data, const QHostAddress & adress, quint32 port );
 
     QUdpSocket m_socket;
-    QSharedPointer< QTimer > m_ping_timer;
+    QSharedPointer< QTimer > m_pingTimer;
 
 };
 

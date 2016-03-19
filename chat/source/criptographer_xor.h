@@ -15,12 +15,12 @@ public:
     /// \brief зашифрует данные
     QByteArray encode( const QByteArray & data ) const { return xORdataByPassword( data ); }
     /// \brief расшифрует данные
-    QByteArray decode( const QByteArray & encoded_data ) const { return xORdataByPassword( encoded_data ); }
+    QByteArray decode( const QByteArray & encodedData ) const { return xORdataByPassword( encodedData ); }
 private:
     Q_DISABLE_COPY(CriptographerXOR)
     QByteArray xORdataByPassword( QByteArray data ) const;
 
-    QByteArray m_password;
+    const QByteArray m_password;
 };
 
 #endif // CRIPTOGRAPHERXOR_H

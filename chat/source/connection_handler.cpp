@@ -2,50 +2,23 @@
 
 #include <stdexcept>
 #include <QDataStream>
+#include <QNetworkInterface>
 
+#include "network_structs.h"
 #include "criptographer_xor.h"
 
 namespace {
-///
-/// \brief заголовок сообщения
-///
-struct MessageHeader
-{
-    MessageHeader():
-        m_id( 0 )
-    {}
-    qint32 m_id;///< иденификатор сообщения
-};
-
-QDataStream & operator <<( QDataStream & stream, const MessageHeader & data )
-{
-    return stream << data.m_id;
-}
-
-QDataStream & operator >>( QDataStream & stream, MessageHeader & data )
-{
-    return stream >> data.m_id;
-}
-
+quint32 cChatPort = 555;//TODO порт привязки любой или нет?
 } //namespace
 
-QDataStream & operator <<( QDataStream & stream, const PingMessage & data )
-{
-    return stream << data.m_nick_name;
-}
-
-QDataStream & operator >>( QDataStream & stream, PingMessage & data )
-{
-    return stream >> data.m_nick_name;
-}
-
-ConnectionHandler::ConnectionHandler()
+ConnectionHandler::ConnectionHandler( QObject * parent ) :
+    QObject( parent )
 {
     setupConnections();
     //привяжемся куда попало
-    m_socket.bind();
-    if( m_ping_timer )
-        m_ping_timer->start( 3000 );//время пингов
+    m_socket.bind( cChatPort );
+    if( m_pingTimer )
+        m_pingTimer->start( 3000 );//время пингов
 }
 
 ConnectionHandler::~ConnectionHandler()
@@ -62,8 +35,12 @@ void ConnectionHandler::writeMessage( NetworkMessage id,
 
     QByteArray buffer;
     QDataStream stream( &buffer, QIODevice::WriteOnly );
+    stream.setVersion( QDataStream::Qt_5_5 );
+
     stream << header << data;
-    m_socket.writeDatagram( buffer, adress, port );
+
+    CriptographerXOR criptographer;
+    m_socket.writeDatagram( criptographer.encode( buffer ), adress, port );
 }
 
 void ConnectionHandler::onSocketReadyRead()
@@ -75,8 +52,11 @@ void ConnectionHandler::onSocketReadyRead()
         quint16 port = 0;
         if( -1 != m_socket.readDatagram( buffer.data(), buffer.size(), &adress, &port ) )
         {
-            CriptographerXOR criptographer;
-            readMessage( criptographer.decode( buffer ), adress, port );
+            //TODO не надо обрабатывать сообщения от себя?
+            {
+                CriptographerXOR criptographer;
+                readMessage( criptographer.decode( buffer ), adress, port );
+            }
         }
         else
             qDebug() << "ConnectionHandler::onSocketReadyRead reading datagram error";
@@ -86,12 +66,16 @@ void ConnectionHandler::onSocketReadyRead()
 void ConnectionHandler::onPingTimerTimeout()
 {
     PingMessage data;
-    data.m_nick_name = "test";//TODO
+    data.m_nickName = "test";//TODO
 
     QByteArray buffer;
     QDataStream stream( &buffer, QIODevice::WriteOnly );
+    stream.setVersion( QDataStream::Qt_5_5 );
+
     stream << data;
-    writeMessage( NetworkMessagePing, buffer, QHostAddress::Broadcast, 0 );
+
+    writeMessage( NetworkMessagePing, buffer,
+                  QHostAddress::Broadcast, cChatPort );
 }
 
 void ConnectionHandler::setupConnections()
@@ -99,40 +83,60 @@ void ConnectionHandler::setupConnections()
     connect( &m_socket, &QUdpSocket::readyRead,
              this, &ConnectionHandler::onSocketReadyRead );
 
-    m_ping_timer.reset( new QTimer );
-    connect( m_ping_timer.data(), &QTimer::timeout,
+    m_pingTimer.reset( new QTimer );
+    connect( m_pingTimer.data(), &QTimer::timeout,
              this, &ConnectionHandler::onPingTimerTimeout );
 }
 
 void ConnectionHandler::readMessage( const QByteArray & message, const QHostAddress & adress, quint32 port )
 {
     QDataStream stream( message );
+    stream.setVersion( QDataStream::Qt_5_5 );
+
     //читаем шапку
     MessageHeader header;
     stream >> header;
-    switch ( header.m_id )
+    if( QDataStream::Ok == stream.status() )
     {
-        case NetworkMessagePing:
+        switch ( header.m_id )
         {
-            PingMessage data;
-            stream >> data;
-            if( QDataStream::Ok == stream.status() )
-                emit receivedPing( data, adress, port );
-            else
-                qDebug() << "ConnectionHandler::readMessage error";
-        } break;
-        case NetworkMessageData:
-        {
-            QByteArray data;
-            stream >> data;
-            if( QDataStream::Ok == stream.status() )
-                emit receivedData( data, adress, port );
-            else
-                qDebug() << "ConnectionHandler::readMessage error";
-        } break;
-        default:
-            qDebug() << "ConnectionHandler::readMessage unknown message";
-        break;
+            case NetworkMessagePing:
+            {
+                QByteArray data;
+                stream >> data;
+                if( QDataStream::Ok == stream.status() )
+                    readPingMessage( data, adress, port );
+                else
+                    qDebug() << "ConnectionHandler::readMessage error";
+            } break;
+            case NetworkMessageData:
+            {
+                QByteArray data;
+                stream >> data;
+                if( QDataStream::Ok == stream.status() )
+                    emit receivedData( data, adress, port );
+                else
+                    qDebug() << "ConnectionHandler::readMessage error";
+            } break;
+            default:
+                qDebug() << "ConnectionHandler::readMessage unknown message";
+            break;
+        }
     }
+    else
+        qDebug() << "ConnectionHandler::readMessage read header error";
+}
+
+void ConnectionHandler::readPingMessage( const QByteArray & data, const QHostAddress & adress, quint32 port )
+{
+    QDataStream stream( data );
+    stream.setVersion( QDataStream::Qt_5_5 );
+
+    PingMessage ping;
+    stream >> ping;
+    if( QDataStream::Ok == stream.status() )
+        emit receivedPing( ping, adress, port );
+    else
+        qDebug() << "ConnectionHandler::readPingMessage read error";
 }
 

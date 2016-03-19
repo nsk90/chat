@@ -6,27 +6,42 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>439</width>
-    <height>391</height>
+    <width>373</width>
+    <height>274</height>
    </rect>
   </property>
   <property name="windowTitle">
    <string>Message Window</string>
   </property>
   <layout class="QVBoxLayout" name="verticalLayout">
+   <property name="spacing">
+    <number>5</number>
+   </property>
+   <property name="leftMargin">
+    <number>5</number>
+   </property>
+   <property name="topMargin">
+    <number>5</number>
+   </property>
+   <property name="rightMargin">
+    <number>5</number>
+   </property>
+   <property name="bottomMargin">
+    <number>5</number>
+   </property>
    <item>
     <widget class="QSplitter" name="splitter">
      <property name="orientation">
       <enum>Qt::Vertical</enum>
      </property>
-     <widget class="QTextEdit" name="m_histort_text_edit"/>
+     <widget class="QTextEdit" name="m_historyTextEdit"/>
      <widget class="QWidget" name="horizontalLayoutWidget">
       <layout class="QHBoxLayout" name="horizontalLayout">
        <item>
-        <widget class="QTextEdit" name="m_message_text_edit"/>
+        <widget class="QTextEdit" name="m_messageTextEdit"/>
        </item>
        <item>
-        <widget class="QPushButton" name="m_send_button">
+        <widget class="QPushButton" name="m_sendButton">
          <property name="sizePolicy">
           <sizepolicy hsizetype="Fixed" vsizetype="Expanding">
            <horstretch>0</horstretch>

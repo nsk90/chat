@@ -6,3 +6,12 @@ ClientModel::ClientModel( QObject * parent ) :
 
 }
 
+void ClientModel::SetNickName( const QString & nick )
+{
+    if( m_nickName != nick )
+    {
+        m_nickName = nick;
+        emit nickNameChanged( m_nickName );
+    }
+}
+
